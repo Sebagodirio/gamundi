@@ -1,8 +1,9 @@
-import { FlatList, SafeAreaView, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ChallengeCard } from "../../src/components/challenges/ChallengeCard";
 import { useChallenges } from "../../src/hooks/useChallenges";
 import { useAuth } from "../../src/hooks/useAuth";
-import { useState } from "react";
 import type { ChallengeCategory } from "../../src/types";
 import { CATEGORY_ICONS } from "../../src/constants/theme";
 
@@ -66,17 +67,12 @@ export default function ChallengesScreen() {
         data={challenges}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ChallengeCard
-            challenge={item}
-            achievement={achievementsMap.get(item.id)}
-          />
+          <ChallengeCard challenge={item} achievement={achievementsMap.get(item.id)} />
         )}
         refreshing={isLoading}
         onRefresh={refresh}
         ListEmptyComponent={
-          <Text className="text-brand-muted text-center mt-12">
-            No challenges found.
-          </Text>
+          <Text className="text-brand-muted text-center mt-12">No challenges found.</Text>
         }
       />
     </SafeAreaView>

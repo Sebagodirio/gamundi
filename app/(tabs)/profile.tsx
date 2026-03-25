@@ -1,5 +1,6 @@
-import { FlatList, Pressable, SafeAreaView, Text, View } from "react-native";
 import { useState } from "react";
+import { FlatList, Pressable, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { StatsCard } from "../../src/components/profile/StatsCard";
 import { LeaderboardRow } from "../../src/components/profile/LeaderboardRow";
 import { ChallengeCard } from "../../src/components/challenges/ChallengeCard";
@@ -39,7 +40,6 @@ export default function ProfileScreen() {
 
       <View className="px-5 mb-3">
         <StatsCard profile={profile} achievementsCount={achievements.length} />
-
         <View className="flex-row mb-4 bg-brand-surface rounded-xl p-1 border border-brand-border">
           {(["achievements", "leaderboard"] as ProfileTab[]).map((tab) => (
             <Pressable
@@ -69,10 +69,7 @@ export default function ProfileScreen() {
           refreshing={isLoading}
           onRefresh={refresh}
           renderItem={({ item }) => (
-            <ChallengeCard
-              challenge={item.challenge!}
-              achievement={item}
-            />
+            <ChallengeCard challenge={item.challenge!} achievement={item} />
           )}
           ListEmptyComponent={
             <Text className="text-brand-muted text-center mt-8">
@@ -88,15 +85,10 @@ export default function ProfileScreen() {
           refreshing={isLoading}
           onRefresh={refresh}
           renderItem={({ item }) => (
-            <LeaderboardRow
-              entry={item}
-              isCurrentUser={item.user.id === authProfile?.id}
-            />
+            <LeaderboardRow entry={item} isCurrentUser={item.user.id === authProfile?.id} />
           )}
           ListEmptyComponent={
-            <Text className="text-brand-muted text-center mt-8">
-              Leaderboard is empty.
-            </Text>
+            <Text className="text-brand-muted text-center mt-8">Leaderboard is empty.</Text>
           }
         />
       )}

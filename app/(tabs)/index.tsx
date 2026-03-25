@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { SafeAreaView, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as Location from "expo-location";
 import { GlobeView } from "../../src/components/map/GlobeView";
 import { useChallenges } from "../../src/hooks/useChallenges";
@@ -14,11 +15,8 @@ export default function ExploreScreen() {
 
   async function handleScan(): Promise<UnlockResult[]> {
     if (!profile?.id) return [];
-
     const { status } = await Location.requestForegroundPermissionsAsync();
-
     let results: UnlockResult[];
-
     if (status === "granted") {
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       results = await evaluateChallengeUnlock(profile.id, {
@@ -28,7 +26,6 @@ export default function ExploreScreen() {
     } else {
       results = await evaluateMockUnlock(profile.id);
     }
-
     setRecentUnlocks(results);
     refresh();
     return results;
@@ -42,7 +39,6 @@ export default function ExploreScreen() {
           {profile?.display_name ?? "Explorer"} 👋
         </Text>
       </View>
-
       <GlobeView
         unlockedCount={achievements.length}
         totalChallenges={challenges.length}

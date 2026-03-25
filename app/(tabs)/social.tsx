@@ -1,14 +1,6 @@
 import { useState } from "react";
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { PostCard } from "../../src/components/social/PostCard";
 import { useSocial } from "../../src/hooks/useSocial";
 import { useAuth } from "../../src/hooks/useAuth";
@@ -34,7 +26,6 @@ export default function SocialScreen() {
         <Text className="text-white font-bold text-2xl">🐰 Rabbit Network</Text>
         <Text className="text-brand-muted text-sm mt-1">Share your travel moments</Text>
       </View>
-
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
