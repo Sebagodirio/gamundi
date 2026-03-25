@@ -29,15 +29,7 @@
     },
     "plugins": [
       "expo-router",
-      "expo-location",
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "deploymentTarget": "15.1"
-          }
-        }
-      ]
+      "expo-location"
     ],
     "experiments": {
       "typedRoutes": true
