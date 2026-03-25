@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String   @id @default(uuid())
+  auth_id        String   @unique
+  username       String   @unique
+  display_name   String
+  avatar_url     String?
+  bio            String?
+  total_points   Int      @default(0)
+  rank           RankTier @default(BRONZE)
+  current_streak Int      @default(0)
+  longest_streak Int      @default(0)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  trips           Trip[]
+  achievements    UserAchievement[]
+  posts           SocialPost[]
+  following       Friendship[]      @relation("Follower")
+  followers       Friendship[]      @relation("Following")
+
+  @@index([auth_id])
+  @@index([total_points(sort: Desc)])
+  @@map("users")
+}
+
+model Trip {
+  id            String    @id @default(uuid())
+  user_id       String
+  title         String?
+  location_data Json
+  started_at    DateTime
+  ended_at      DateTime?
+  created_at    DateTime  @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("trips")
+}
+
+model Challenge {
+  id           String            @id @default(uuid())
+  title        String
+  description  String
+  category     ChallengeCategory
+  points_value Int
+  icon_url     String?
+  latitude     Float?
+  longitude    Float?
+  radius_meters Float?
+  country_code String?
+  is_active    Boolean           @default(true)
+  created_at   DateTime          @default(now())
+
+  achievements UserAchievement[]
+
+  @@index([category])
+  @@index([country_code])
+  @@map("challenges")
+}
+
+model UserAchievement {
+  id           String   @id @default(uuid())
+  user_id      String
+  challenge_id String
+  unlocked_at  DateTime @default(now())
+  points_at_unlock Int
+
+  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, challenge_id])
+  @@index([user_id])
+  @@map("user_achievements")
+}
+
+model SocialPost {
+  id           String   @id @default(uuid())
+  user_id      String
+  content      String
+  image_url    String?
+  location_tag String?
+  likes_count  Int      @default(0)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([created_at(sort: Desc)])
+  @@map("social_posts")
+}
+
+model Friendship {
+  id          String           @id @default(uuid())
+  follower_id String
+  following_id String
+  status      FriendshipStatus @default(PENDING)
+  created_at  DateTime         @default(now())
+  updated_at  DateTime         @updatedAt
+
+  follower  User @relation("Follower", fields: [follower_id], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [following_id], references: [id], onDelete: Cascade)
+
+  @@unique([follower_id, following_id])
+  @@index([follower_id])
+  @@index([following_id])
+  @@map("friendships")
+}
+
+enum RankTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+}
+
+enum ChallengeCategory {
+  COUNTRY
+  WONDER
+  HIDDEN_GEM
+  MAGIC_TOWN
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
