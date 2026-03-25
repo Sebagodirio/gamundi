@@ -38,6 +38,8 @@ These versions are pinned to resolve known Expo Go / React Native renderer confl
 
 **Why:** `react-native@0.81.5` ships `react-native-renderer@19.1.0`. React must be exactly `19.1.0`. Installing newer versions of `react-native-worklets` (>0.5.1) silently upgrades React to 19.2.x which crashes the renderer.
 
+The `package.json` also includes an `"overrides"` block that prevents any transitive dependency from pulling in a different React version — **do not remove it**.
+
 When adding new packages, always use `npx expo install <package>` (not `npm install`) to get SDK-compatible versions.
 
 ---
