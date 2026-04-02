@@ -10,6 +10,8 @@ export interface UnlockResult {
   challenge_id?: string;
   points_earned?: number;
   error?: string;
+  type?: "COUNTRY" | "WONDER" | "HIDDEN_GEM" | "MAGIC_TOWN" | "CONTINENT";
+  title?: string;
 }
 
 export interface AuthState {

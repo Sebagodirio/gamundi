@@ -5,10 +5,11 @@ interface SeedChallenge {
   description: string;
   category: ChallengeCategory;
   points_value: number;
-  latitude: number;
-  longitude: number;
-  radius_meters: number;
-  country_code: string;
+  latitude?: number;
+  longitude?: number;
+  radius_meters?: number;
+  country_code?: string;
+  continent_code?: string;
 }
 
 export const SEED_CHALLENGES: SeedChallenge[] = [
@@ -21,6 +22,7 @@ export const SEED_CHALLENGES: SeedChallenge[] = [
     longitude: -99.1332,
     radius_meters: 50000,
     country_code: "MX",
+    continent_code: "NA",
   },
   {
     title: "Chichén Itzá",
@@ -31,6 +33,7 @@ export const SEED_CHALLENGES: SeedChallenge[] = [
     longitude: -88.5678,
     radius_meters: 1000,
     country_code: "MX",
+    continent_code: "NA",
   },
   {
     title: "Real de Catorce",
@@ -41,6 +44,7 @@ export const SEED_CHALLENGES: SeedChallenge[] = [
     longitude: -100.9,
     radius_meters: 2000,
     country_code: "MX",
+    continent_code: "NA",
   },
   {
     title: "Cenote Ik-Kil",
@@ -51,6 +55,7 @@ export const SEED_CHALLENGES: SeedChallenge[] = [
     longitude: -88.5751,
     radius_meters: 500,
     country_code: "MX",
+    continent_code: "NA",
   },
   {
     title: "Visit Japan",
@@ -61,6 +66,7 @@ export const SEED_CHALLENGES: SeedChallenge[] = [
     longitude: 139.6503,
     radius_meters: 100000,
     country_code: "JP",
+    continent_code: "AS",
   },
   {
     title: "Mount Fuji",
@@ -71,5 +77,6 @@ export const SEED_CHALLENGES: SeedChallenge[] = [
     longitude: 138.7274,
     radius_meters: 5000,
     country_code: "JP",
+    continent_code: "AS",
   },
 ];

@@ -1,6 +1,6 @@
 export type RankTier = "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" | "DIAMOND";
 
-export type ChallengeCategory = "COUNTRY" | "WONDER" | "HIDDEN_GEM" | "MAGIC_TOWN";
+export type ChallengeCategory = "COUNTRY" | "WONDER" | "HIDDEN_GEM" | "MAGIC_TOWN" | "CONTINENT";
 
 export type FriendshipStatus = "PENDING" | "ACCEPTED" | "BLOCKED";
 
@@ -50,6 +50,7 @@ export interface Challenge {
   longitude: number | null;
   radius_meters: number | null;
   country_code: string | null;
+  continent_code: string | null;
   is_active: boolean;
   created_at: string;
 }

@@ -57,9 +57,10 @@ model Challenge {
   latitude     Float?
   longitude    Float?
   radius_meters Float?
-  country_code String?
-  is_active    Boolean           @default(true)
-  created_at   DateTime          @default(now())
+  country_code   String?
+  continent_code String?
+  is_active      Boolean           @default(true)
+  created_at     DateTime          @default(now())
 
   achievements UserAchievement[]
 
@@ -130,6 +131,7 @@ enum ChallengeCategory {
   WONDER
   HIDDEN_GEM
   MAGIC_TOWN
+  CONTINENT
 }
 
 enum FriendshipStatus {
