@@ -4,6 +4,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
 import { useAuth } from "../src/hooks/useAuth";
+import { I18nProvider } from "../src/i18n";
 
 export default function RootLayout() {
   const { session, isLoading } = useAuth();
@@ -31,12 +32,12 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <I18nProvider>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
       </Stack>
-    </>
+    </I18nProvider>
   );
 }

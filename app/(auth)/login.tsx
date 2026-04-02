@@ -15,6 +15,8 @@ import * as Haptics from "expo-haptics";
 import { signIn } from "../../src/services/auth";
 import { AuthInput } from "../../src/components/auth/AuthInput";
 import { COLORS } from "../../src/constants/theme";
+import { useI18n } from "../../src/i18n";
+import { translateAuthError } from "../../src/utils/errors";
 
 interface FieldErrors {
   email?: string;
@@ -26,6 +28,7 @@ function validateEmail(email: string): boolean {
 }
 
 export default function LoginScreen() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -35,9 +38,9 @@ export default function LoginScreen() {
 
   function validate(): boolean {
     const next: FieldErrors = {};
-    if (!email.trim()) next.email = "Email is required.";
-    else if (!validateEmail(email)) next.email = "Enter a valid email address.";
-    if (!password) next.password = "Password is required.";
+    if (!email.trim()) next.email = t("auth.validation.emailRequired");
+    else if (!validateEmail(email)) next.email = t("auth.validation.emailInvalid");
+    if (!password) next.password = t("auth.validation.passwordRequired");
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -51,7 +54,7 @@ export default function LoginScreen() {
     setGlobalError(null);
     const { error } = await signIn(email.trim().toLowerCase(), password);
     if (error) {
-      setGlobalError(error);
+      setGlobalError(translateAuthError(error, t));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -76,10 +79,10 @@ export default function LoginScreen() {
               <Text className="text-4xl">🌍</Text>
             </View>
             <Text className="text-white font-bold text-3xl tracking-tight">
-              Welcome back
+              {t("auth.login.title")}
             </Text>
             <Text className="text-brand-muted text-sm mt-2 text-center">
-              Sign in to continue your journey
+              {t("auth.login.subtitle")}
             </Text>
           </View>
 
@@ -93,13 +96,13 @@ export default function LoginScreen() {
             )}
 
             <AuthInput
-              label="Email"
+              label={t("auth.login.emailLabel")}
               value={email}
               onChangeText={(v) => {
                 setEmail(v);
                 if (errors.email) setErrors((e) => ({ ...e, email: undefined }));
               }}
-              placeholder="you@example.com"
+              placeholder={t("auth.login.emailPlaceholder")}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
@@ -109,13 +112,13 @@ export default function LoginScreen() {
             />
 
             <AuthInput
-              label="Password"
+              label={t("auth.login.passwordLabel")}
               value={password}
               onChangeText={(v) => {
                 setPassword(v);
                 if (errors.password) setErrors((e) => ({ ...e, password: undefined }));
               }}
-              placeholder="••••••••"
+              placeholder={t("auth.login.passwordPlaceholder")}
               isPassword
               autoComplete="password"
               returnKeyType="done"
@@ -124,7 +127,9 @@ export default function LoginScreen() {
             />
 
             <Pressable className="self-end mb-6 -mt-2">
-              <Text className="text-brand-primary text-sm font-medium">Forgot password?</Text>
+              <Text className="text-brand-primary text-sm font-medium">
+                {t("auth.login.forgotPassword")}
+              </Text>
             </Pressable>
 
             {/* CTA */}
@@ -142,7 +147,7 @@ export default function LoginScreen() {
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text className="text-white font-bold text-base tracking-wide">
-                    Sign In
+                    {t("auth.login.button")}
                   </Text>
                 )}
               </View>
@@ -151,17 +156,17 @@ export default function LoginScreen() {
             {/* Divider */}
             <View className="flex-row items-center mb-6">
               <View className="flex-1 h-px bg-brand-border" />
-              <Text className="text-brand-muted text-xs mx-3">or</Text>
+              <Text className="text-brand-muted text-xs mx-3">{t("common.or")}</Text>
               <View className="flex-1 h-px bg-brand-border" />
             </View>
 
             {/* Switch */}
             <View className="flex-row justify-center pb-8">
-              <Text className="text-brand-muted text-sm">New to Gamundi? </Text>
+              <Text className="text-brand-muted text-sm">{t("auth.login.noAccount")} </Text>
               <Link href="/(auth)/register" asChild>
                 <Pressable>
                   <Text className="text-brand-primary text-sm font-bold">
-                    Create account
+                    {t("auth.login.createAccount")}
                   </Text>
                 </Pressable>
               </Link>

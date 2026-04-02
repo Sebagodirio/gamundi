@@ -1,0 +1,82 @@
+export interface Country {
+  code: string;
+  nameEn: string;
+  nameEs: string;
+}
+
+/** Returns the flag emoji for a given ISO 3166-1 alpha-2 country code. */
+export function getFlagEmoji(code: string): string {
+  return [...code.toUpperCase()]
+    .map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0)))
+    .join("");
+}
+
+export const COUNTRIES: Country[] = [
+  { code: "AR", nameEn: "Argentina", nameEs: "Argentina" },
+  { code: "AU", nameEn: "Australia", nameEs: "Australia" },
+  { code: "AT", nameEn: "Austria", nameEs: "Austria" },
+  { code: "BE", nameEn: "Belgium", nameEs: "Bélgica" },
+  { code: "BO", nameEn: "Bolivia", nameEs: "Bolivia" },
+  { code: "BR", nameEn: "Brazil", nameEs: "Brasil" },
+  { code: "CA", nameEn: "Canada", nameEs: "Canadá" },
+  { code: "CL", nameEn: "Chile", nameEs: "Chile" },
+  { code: "CN", nameEn: "China", nameEs: "China" },
+  { code: "CO", nameEn: "Colombia", nameEs: "Colombia" },
+  { code: "CR", nameEn: "Costa Rica", nameEs: "Costa Rica" },
+  { code: "HR", nameEn: "Croatia", nameEs: "Croacia" },
+  { code: "CU", nameEn: "Cuba", nameEs: "Cuba" },
+  { code: "CZ", nameEn: "Czech Republic", nameEs: "República Checa" },
+  { code: "DK", nameEn: "Denmark", nameEs: "Dinamarca" },
+  { code: "DO", nameEn: "Dominican Republic", nameEs: "República Dominicana" },
+  { code: "EC", nameEn: "Ecuador", nameEs: "Ecuador" },
+  { code: "EG", nameEn: "Egypt", nameEs: "Egipto" },
+  { code: "SV", nameEn: "El Salvador", nameEs: "El Salvador" },
+  { code: "FI", nameEn: "Finland", nameEs: "Finlandia" },
+  { code: "FR", nameEn: "France", nameEs: "Francia" },
+  { code: "DE", nameEn: "Germany", nameEs: "Alemania" },
+  { code: "GR", nameEn: "Greece", nameEs: "Grecia" },
+  { code: "GT", nameEn: "Guatemala", nameEs: "Guatemala" },
+  { code: "HN", nameEn: "Honduras", nameEs: "Honduras" },
+  { code: "HK", nameEn: "Hong Kong", nameEs: "Hong Kong" },
+  { code: "HU", nameEn: "Hungary", nameEs: "Hungría" },
+  { code: "IN", nameEn: "India", nameEs: "India" },
+  { code: "ID", nameEn: "Indonesia", nameEs: "Indonesia" },
+  { code: "IE", nameEn: "Ireland", nameEs: "Irlanda" },
+  { code: "IL", nameEn: "Israel", nameEs: "Israel" },
+  { code: "IT", nameEn: "Italy", nameEs: "Italia" },
+  { code: "JP", nameEn: "Japan", nameEs: "Japón" },
+  { code: "JO", nameEn: "Jordan", nameEs: "Jordania" },
+  { code: "KE", nameEn: "Kenya", nameEs: "Kenia" },
+  { code: "KR", nameEn: "South Korea", nameEs: "Corea del Sur" },
+  { code: "MX", nameEn: "Mexico", nameEs: "México" },
+  { code: "MA", nameEn: "Morocco", nameEs: "Marruecos" },
+  { code: "NL", nameEn: "Netherlands", nameEs: "Países Bajos" },
+  { code: "NZ", nameEn: "New Zealand", nameEs: "Nueva Zelanda" },
+  { code: "NI", nameEn: "Nicaragua", nameEs: "Nicaragua" },
+  { code: "NG", nameEn: "Nigeria", nameEs: "Nigeria" },
+  { code: "NO", nameEn: "Norway", nameEs: "Noruega" },
+  { code: "PA", nameEn: "Panama", nameEs: "Panamá" },
+  { code: "PY", nameEn: "Paraguay", nameEs: "Paraguay" },
+  { code: "PE", nameEn: "Peru", nameEs: "Perú" },
+  { code: "PH", nameEn: "Philippines", nameEs: "Filipinas" },
+  { code: "PL", nameEn: "Poland", nameEs: "Polonia" },
+  { code: "PT", nameEn: "Portugal", nameEs: "Portugal" },
+  { code: "PR", nameEn: "Puerto Rico", nameEs: "Puerto Rico" },
+  { code: "RO", nameEn: "Romania", nameEs: "Rumanía" },
+  { code: "RU", nameEn: "Russia", nameEs: "Rusia" },
+  { code: "SA", nameEn: "Saudi Arabia", nameEs: "Arabia Saudita" },
+  { code: "ZA", nameEn: "South Africa", nameEs: "Sudáfrica" },
+  { code: "ES", nameEn: "Spain", nameEs: "España" },
+  { code: "SE", nameEn: "Sweden", nameEs: "Suecia" },
+  { code: "CH", nameEn: "Switzerland", nameEs: "Suiza" },
+  { code: "TW", nameEn: "Taiwan", nameEs: "Taiwán" },
+  { code: "TH", nameEn: "Thailand", nameEs: "Tailandia" },
+  { code: "TR", nameEn: "Turkey", nameEs: "Turquía" },
+  { code: "UA", nameEn: "Ukraine", nameEs: "Ucrania" },
+  { code: "AE", nameEn: "United Arab Emirates", nameEs: "Emiratos Árabes Unidos" },
+  { code: "GB", nameEn: "United Kingdom", nameEs: "Reino Unido" },
+  { code: "US", nameEn: "United States", nameEs: "Estados Unidos" },
+  { code: "UY", nameEn: "Uruguay", nameEs: "Uruguay" },
+  { code: "VE", nameEn: "Venezuela", nameEs: "Venezuela" },
+  { code: "VN", nameEn: "Vietnam", nameEs: "Vietnam" },
+];

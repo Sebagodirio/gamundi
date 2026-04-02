@@ -14,70 +14,88 @@ import { Link } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { signUp } from "../../src/services/auth";
 import { AuthInput } from "../../src/components/auth/AuthInput";
+import { CountrySelector } from "../../src/components/auth/CountrySelector";
 import { COLORS } from "../../src/constants/theme";
+import { useI18n } from "../../src/i18n";
+import { translateAuthError } from "../../src/utils/errors";
 
 interface FieldErrors {
   displayName?: string;
   username?: string;
   email?: string;
   password?: string;
+  country?: string;
 }
 
 function validateEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function getPasswordStrength(password: string): {
-  level: 0 | 1 | 2 | 3;
-  label: string;
-  color: string;
-} {
-  if (password.length === 0) return { level: 0, label: "", color: "transparent" };
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 1) return { level: 1, label: "Weak", color: "#FF4D4D" };
-  if (score === 2) return { level: 2, label: "Fair", color: "#FFB800" };
-  return { level: 3, label: "Strong", color: "#43E97B" };
-}
-
 export default function RegisterScreen() {
+  const { t } = useI18n();
+
   const [form, setForm] = useState({
     displayName: "",
     username: "",
     email: "",
     password: "",
+    country: null as string | null,
   });
   const [errors, setErrors] = useState<FieldErrors>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const [pendingConfirmation, setPendingConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const usernameRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 
+  function getPasswordStrength(password: string): {
+    level: 0 | 1 | 2 | 3;
+    label: string;
+    color: string;
+  } {
+    if (password.length === 0) return { level: 0, label: "", color: "transparent" };
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    if (score <= 1)
+      return { level: 1, label: t("auth.passwordStrength.weak"), color: "#FF4D4D" };
+    if (score === 2)
+      return { level: 2, label: t("auth.passwordStrength.fair"), color: "#FFB800" };
+    return { level: 3, label: t("auth.passwordStrength.strong"), color: "#43E97B" };
+  }
+
   const passwordStrength = getPasswordStrength(form.password);
 
-  function update(field: keyof typeof form, value: string) {
+  function update<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }));
+    if (errors[field as keyof FieldErrors])
+      setErrors((e) => ({ ...e, [field]: undefined }));
   }
 
   function validate(): boolean {
     const next: FieldErrors = {};
-    if (!form.displayName.trim()) next.displayName = "Display name is required.";
-    if (!form.username.trim()) next.username = "Username is required.";
-    else if (form.username.length < 3) next.username = "At least 3 characters.";
-    else if (/\s/.test(form.username)) next.username = "No spaces allowed.";
+    if (!form.displayName.trim())
+      next.displayName = t("auth.validation.displayNameRequired");
+    if (!form.username.trim())
+      next.username = t("auth.validation.usernameRequired");
+    else if (form.username.length < 3)
+      next.username = t("auth.validation.usernameTooShort");
+    else if (/\s/.test(form.username))
+      next.username = t("auth.validation.usernameNoSpaces");
     else if (!/^[a-zA-Z0-9_]+$/.test(form.username))
-      next.username = "Only letters, numbers and underscores.";
-    if (!form.email.trim()) next.email = "Email is required.";
-    else if (!validateEmail(form.email)) next.email = "Enter a valid email address.";
-    if (!form.password) next.password = "Password is required.";
-    else if (form.password.length < 8) next.password = "At least 8 characters required.";
+      next.username = t("auth.validation.usernameInvalid");
+    if (!form.email.trim()) next.email = t("auth.validation.emailRequired");
+    else if (!validateEmail(form.email))
+      next.email = t("auth.validation.emailInvalid");
+    if (!form.password) next.password = t("auth.validation.passwordRequired");
+    else if (form.password.length < 8)
+      next.password = t("auth.validation.passwordTooShort");
+    if (!form.country) next.country = t("auth.validation.countryRequired");
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -89,15 +107,21 @@ export default function RegisterScreen() {
     }
     setLoading(true);
     setGlobalError(null);
-    const { error } = await signUp(
+    setPendingConfirmation(false);
+    const { data, error } = await signUp(
       form.email.trim().toLowerCase(),
       form.password,
       form.username.trim().toLowerCase(),
-      form.displayName.trim()
+      form.displayName.trim(),
+      form.country ?? undefined
     );
     if (error) {
-      setGlobalError(error);
+      setGlobalError(translateAuthError(error, t));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } else if (!data) {
+      // Email confirmation required
+      setPendingConfirmation(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
@@ -121,10 +145,10 @@ export default function RegisterScreen() {
               <Text className="text-4xl">🗺️</Text>
             </View>
             <Text className="text-white font-bold text-3xl tracking-tight">
-              Join Gamundi
+              {t("auth.register.title")}
             </Text>
             <Text className="text-brand-muted text-sm mt-2 text-center">
-              Unlock the world, one destination at a time
+              {t("auth.register.subtitle")}
             </Text>
           </View>
 
@@ -137,11 +161,20 @@ export default function RegisterScreen() {
               </View>
             )}
 
+            {pendingConfirmation && (
+              <View className="bg-green-950 border border-green-500/40 rounded-2xl px-4 py-3 mb-5 flex-row items-center gap-2">
+                <Text className="text-lg">📧</Text>
+                <Text className="text-green-400 text-sm flex-1">
+                  {t("auth.register.confirmationSent")}
+                </Text>
+              </View>
+            )}
+
             <AuthInput
-              label="Display Name"
+              label={t("auth.register.displayNameLabel")}
               value={form.displayName}
               onChangeText={(v) => update("displayName", v)}
-              placeholder="How you appear to others"
+              placeholder={t("auth.register.displayNamePlaceholder")}
               autoCapitalize="words"
               autoComplete="name"
               returnKeyType="next"
@@ -150,10 +183,12 @@ export default function RegisterScreen() {
             />
 
             <AuthInput
-              label="Username"
+              label={t("auth.register.usernameLabel")}
               value={form.username}
-              onChangeText={(v) => update("username", v.toLowerCase().replace(/\s/g, ""))}
-              placeholder="your_handle"
+              onChangeText={(v) =>
+                update("username", v.toLowerCase().replace(/\s/g, ""))
+              }
+              placeholder={t("auth.register.usernamePlaceholder")}
               autoCapitalize="none"
               autoComplete="username"
               returnKeyType="next"
@@ -162,10 +197,10 @@ export default function RegisterScreen() {
             />
 
             <AuthInput
-              label="Email"
+              label={t("auth.register.emailLabel")}
               value={form.email}
               onChangeText={(v) => update("email", v)}
-              placeholder="you@example.com"
+              placeholder={t("auth.register.emailPlaceholder")}
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
@@ -175,14 +210,14 @@ export default function RegisterScreen() {
             />
 
             <AuthInput
-              label="Password"
+              label={t("auth.register.passwordLabel")}
               value={form.password}
               onChangeText={(v) => update("password", v)}
-              placeholder="Min. 8 characters"
+              placeholder={t("auth.register.passwordPlaceholder")}
               isPassword
               autoComplete="new-password"
-              returnKeyType="done"
-              onSubmitEditing={handleRegister}
+              returnKeyType="next"
+              onSubmitEditing={() => {}}
               error={errors.password}
             />
 
@@ -204,10 +239,18 @@ export default function RegisterScreen() {
                   ))}
                 </View>
                 <Text className="text-xs ml-1" style={{ color: passwordStrength.color }}>
-                  {passwordStrength.label} password
+                  {passwordStrength.label}
                 </Text>
               </View>
             )}
+
+            <CountrySelector
+              value={form.country}
+              onChange={(code) => update("country", code)}
+              label={t("auth.register.countryLabel")}
+              placeholder={t("auth.register.countryPlaceholder")}
+              error={errors.country}
+            />
 
             {/* CTA */}
             <Pressable
@@ -224,31 +267,36 @@ export default function RegisterScreen() {
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text className="text-white font-bold text-base tracking-wide">
-                    Create Account
+                    {t("auth.register.button")}
                   </Text>
                 )}
               </View>
             </Pressable>
 
             <Text className="text-brand-muted text-xs text-center mb-5 leading-relaxed px-4">
-              By creating an account you agree to our{" "}
-              <Text className="text-brand-primary">Terms of Service</Text> and{" "}
-              <Text className="text-brand-primary">Privacy Policy</Text>.
+              {t("auth.register.terms")}{" "}
+              <Text className="text-brand-primary">{t("auth.register.termsLink")}</Text>{" "}
+              {t("auth.register.termsAnd")}{" "}
+              <Text className="text-brand-primary">{t("auth.register.privacyLink")}</Text>.
             </Text>
 
             {/* Divider */}
             <View className="flex-row items-center mb-5">
               <View className="flex-1 h-px bg-brand-border" />
-              <Text className="text-brand-muted text-xs mx-3">or</Text>
+              <Text className="text-brand-muted text-xs mx-3">{t("common.or")}</Text>
               <View className="flex-1 h-px bg-brand-border" />
             </View>
 
             {/* Switch */}
             <View className="flex-row justify-center pb-8">
-              <Text className="text-brand-muted text-sm">Already have an account? </Text>
+              <Text className="text-brand-muted text-sm">
+                {t("auth.register.hasAccount")}{" "}
+              </Text>
               <Link href="/(auth)/login" asChild>
                 <Pressable>
-                  <Text className="text-brand-primary text-sm font-bold">Sign in</Text>
+                  <Text className="text-brand-primary text-sm font-bold">
+                    {t("auth.register.signIn")}
+                  </Text>
                 </Pressable>
               </Link>
             </View>

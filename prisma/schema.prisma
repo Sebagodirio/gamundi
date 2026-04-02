@@ -13,6 +13,7 @@ model User {
   display_name   String
   avatar_url     String?
   bio            String?
+  country_code   String?
   total_points   Int      @default(0)
   rank           RankTier @default(BRONZE)
   current_streak Int      @default(0)

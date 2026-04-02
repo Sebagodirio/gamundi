@@ -11,6 +11,7 @@ export interface UserProfile {
   display_name: string;
   avatar_url: string | null;
   bio: string | null;
+  country_code: string | null;
   total_points: number;
   rank: RankTier;
   current_streak: number;
