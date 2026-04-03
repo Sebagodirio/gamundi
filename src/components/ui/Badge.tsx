@@ -1,20 +1,31 @@
 import { Text, View } from "react-native";
-import { RANK_COLORS, CATEGORY_ICONS } from "../../constants/theme";
+import { CATEGORY_ICONS } from "../../constants/theme";
+import { getRankInfo } from "../../constants/ranks";
 import type { RankTier, ChallengeCategory } from "../../types";
 
 interface RankBadgeProps {
   rank: RankTier;
+  size?: "sm" | "md";
 }
 
-export function RankBadge({ rank }: RankBadgeProps) {
-  const color = RANK_COLORS[rank] ?? "#fff";
+export function RankBadge({ rank, size = "md" }: RankBadgeProps) {
+  const info = getRankInfo(rank);
+  const isSm = size === "sm";
   return (
     <View
-      className="px-3 py-1 rounded-full"
-      style={{ backgroundColor: `${color}22`, borderWidth: 1, borderColor: color }}
+      className={`flex-row items-center gap-1 rounded-full ${isSm ? "px-2 py-0.5" : "px-3 py-1.5"}`}
+      style={{
+        backgroundColor: `${info.color}18`,
+        borderWidth: 1,
+        borderColor: `${info.color}66`,
+      }}
     >
-      <Text className="text-xs font-bold" style={{ color }}>
-        {rank}
+      <Text style={{ fontSize: isSm ? 11 : 14 }}>{info.icon}</Text>
+      <Text
+        className={`font-bold ${isSm ? "text-xs" : "text-xs"}`}
+        style={{ color: info.color }}
+      >
+        {info.label}
       </Text>
     </View>
   );

@@ -10,31 +10,49 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChallengeCard } from "../../src/components/challenges/ChallengeCard";
 import { LeaderboardRow } from "../../src/components/profile/LeaderboardRow";
+import { CollectionCard } from "../../src/components/profile/CollectionCard";
+import { TravelStats } from "../../src/components/profile/TravelStats";
+import { XPBar } from "../../src/components/profile/XPBar";
 import { RankBadge } from "../../src/components/ui/Badge";
 import { useAuth } from "../../src/hooks/useAuth";
 import { useChallenges } from "../../src/hooks/useChallenges";
 import { useProfile } from "../../src/hooks/useProfile";
+import { useTravelStats } from "../../src/hooks/useTravelStats";
 import { useI18n } from "../../src/i18n";
 import { signOut } from "../../src/services/auth";
 import { COLORS, RANK_COLORS } from "../../src/constants/theme";
 import { COUNTRIES, getFlagEmoji } from "../../src/constants/countries";
+import { getRankInfo } from "../../src/constants/ranks";
+import { computeCollections } from "../../src/constants/collections";
 import type { LeaderboardEntry, UserAchievement } from "../../src/types";
 
-type ProfileTab = "achievements" | "leaderboard";
+type ProfileTab = "achievements" | "collections" | "stats" | "leaderboard";
+
+const TABS: Array<{ key: ProfileTab; label: string; icon: string }> = [
+  { key: "achievements", label: "Logros", icon: "🏅" },
+  { key: "collections", label: "Colecciones", icon: "🎯" },
+  { key: "stats", label: "Estadísticas", icon: "📊" },
+  { key: "leaderboard", label: "Ranking", icon: "🏆" },
+];
 
 function Avatar({ name, rank }: { name: string; rank: string }) {
-  const initials = name
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-  const color = RANK_COLORS[rank] ?? COLORS.primary;
+  const info = getRankInfo(rank as any);
   return (
     <View
       className="w-20 h-20 rounded-full items-center justify-center mb-3"
-      style={{ backgroundColor: `${color}22`, borderWidth: 2, borderColor: `${color}66` }}
+      style={{
+        backgroundColor: `${info.color}22`,
+        borderWidth: 2,
+        borderColor: `${info.color}66`,
+      }}
     >
-      <Text className="text-white font-bold text-2xl">{initials}</Text>
+      <Text className="text-white font-bold text-2xl">
+        {name
+          .split(" ")
+          .slice(0, 2)
+          .map((w) => w[0]?.toUpperCase() ?? "")
+          .join("")}
+      </Text>
     </View>
   );
 }
@@ -43,7 +61,7 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: s
   return (
     <View className="flex-row items-center py-3 border-b border-brand-border">
       <Text className="text-base w-7">{icon}</Text>
-      <Text className="text-brand-muted text-sm w-24">{label}</Text>
+      <Text className="text-brand-muted text-sm w-28">{label}</Text>
       <Text className="text-white text-sm flex-1 text-right">{value}</Text>
     </View>
   );
@@ -53,8 +71,19 @@ export default function ProfileScreen() {
   const { t } = useI18n();
   const { profile: authProfile, session, isLoading: authLoading } = useAuth();
   const { profile, leaderboard, isLoading, refresh } = useProfile(authProfile?.id ?? null);
-  const { achievements } = useChallenges(authProfile?.id ?? null);
+  const { challenges, achievements } = useChallenges(authProfile?.id ?? null);
   const [activeTab, setActiveTab] = useState<ProfileTab>("achievements");
+
+  const stats = useTravelStats(
+    achievements,
+    challenges,
+    profile?.total_points ?? 0
+  );
+
+  const collections = computeCollections(
+    challenges,
+    new Set(achievements.map((a) => a.challenge_id))
+  );
 
   function handleSignOut() {
     Alert.alert(t("profile.signOut"), t("profile.signOutConfirm"), [
@@ -68,7 +97,7 @@ export default function ProfileScreen() {
     : null;
 
   const joinedDate = profile?.created_at
-    ? new Date(profile.created_at).toLocaleDateString(undefined, {
+    ? new Date(profile.created_at).toLocaleDateString("es-MX", {
         month: "long",
         year: "numeric",
       })
@@ -77,22 +106,17 @@ export default function ProfileScreen() {
   if (authLoading || (authProfile && !profile && isLoading)) {
     return (
       <SafeAreaView className="flex-1 bg-brand-dark items-center justify-center">
-        <Text className="text-brand-muted">Loading…</Text>
+        <Text className="text-brand-muted">Cargando…</Text>
       </SafeAreaView>
     );
   }
 
   if (!profile) {
-    // Profile row missing — account exists in auth but not in users table.
-    // This happens when a user signed up before the DB trigger was configured.
     return (
       <SafeAreaView className="flex-1 bg-brand-dark items-center justify-center px-8">
         <Text className="text-4xl mb-4">⚠️</Text>
         <Text className="text-white font-bold text-lg text-center mb-2">
-          Profile not found
-        </Text>
-        <Text className="text-brand-muted text-sm text-center mb-2">
-          Your account exists but no profile row was created.
+          Perfil no encontrado
         </Text>
         <Text className="text-brand-muted text-xs text-center mb-8">
           auth_id: {session?.user?.id ?? "—"}
@@ -101,39 +125,37 @@ export default function ProfileScreen() {
           onPress={signOut}
           className="px-6 py-3 rounded-xl border border-red-500/30 bg-red-950/40"
         >
-          <Text className="text-red-400 font-semibold">Sign Out</Text>
+          <Text className="text-red-400 font-semibold">Cerrar sesión</Text>
         </Pressable>
       </SafeAreaView>
     );
   }
 
-  const ListHeader = (
+  // ── Profile header (shared across all tabs) ────────────────────────────
+  const Header = (
     <View>
       {/* Hero */}
-      <View className="items-center pt-6 pb-4 px-5">
+      <View className="items-center pt-6 pb-2 px-5">
         <Avatar name={profile.display_name} rank={profile.rank} />
         <Text className="text-white font-bold text-2xl">{profile.display_name}</Text>
-        <View className="flex-row items-center gap-2 mt-1">
+        <View className="flex-row items-center gap-2 mt-1 mb-3">
           <Text className="text-brand-muted text-sm">@{profile.username}</Text>
-          {country && (
-            <Text className="text-sm">{getFlagEmoji(country.code)}</Text>
-          )}
+          {country && <Text className="text-sm">{getFlagEmoji(country.code)}</Text>}
         </View>
-        <View className="mt-2">
-          <RankBadge rank={profile.rank} />
-        </View>
+        <RankBadge rank={profile.rank} />
+        <XPBar points={profile.total_points} rank={profile.rank} />
       </View>
 
-      {/* Stats */}
+      {/* Stats strip */}
       <View
-        className="mx-5 rounded-2xl border border-brand-border flex-row justify-between px-5 py-4 mb-4"
+        className="mx-5 rounded-2xl border border-brand-border flex-row justify-between px-4 py-4 mb-4 mt-4"
         style={{ backgroundColor: COLORS.surface }}
       >
         {[
-          { label: t("profile.points"), value: profile.total_points.toLocaleString() },
-          { label: t("profile.unlocked"), value: achievements.length.toString() },
-          { label: t("profile.streak"), value: `${profile.current_streak}🔥` },
-          { label: t("profile.best"), value: `${profile.longest_streak}🏆` },
+          { label: "Puntos", value: profile.total_points.toLocaleString() },
+          { label: "Logros", value: achievements.length.toString() },
+          { label: "Racha", value: `${profile.current_streak}🔥` },
+          { label: "Récord", value: `${profile.longest_streak}🏆` },
         ].map(({ label, value }) => (
           <View key={label} className="items-center">
             <Text className="text-white font-bold text-lg">{value}</Text>
@@ -142,63 +164,68 @@ export default function ProfileScreen() {
         ))}
       </View>
 
-      {/* Account info */}
+      {/* Account info (collapsed by default under stats) */}
       <View
         className="mx-5 rounded-2xl border border-brand-border px-4 mb-4 overflow-hidden"
         style={{ backgroundColor: COLORS.surface }}
       >
         <Text className="text-brand-muted text-xs font-semibold uppercase tracking-widest pt-3 pb-1">
-          {t("profile.account")}
+          Cuenta
         </Text>
-        <InfoRow icon="✉️" label={t("profile.email")} value={session?.user?.email ?? "—"} />
+        <InfoRow icon="✉️" label="Correo" value={session?.user?.email ?? "—"} />
         <InfoRow
           icon="🌍"
-          label={t("profile.country")}
-          value={
-            country
-              ? `${getFlagEmoji(country.code)} ${country.nameEn}`
-              : "—"
-          }
+          label="País"
+          value={country ? `${getFlagEmoji(country.code)} ${country.nameEs}` : "—"}
         />
-        <InfoRow icon="📅" label={t("profile.memberSince")} value={joinedDate} />
+        <InfoRow icon="📅" label="Miembro desde" value={joinedDate} />
         <View className="py-3">
           <Pressable
             onPress={handleSignOut}
             className="flex-row items-center justify-center py-3 rounded-xl border border-red-500/30 bg-red-950/40"
           >
-            <Text className="text-red-400 font-semibold text-sm">
-              {t("profile.signOut")}
-            </Text>
+            <Text className="text-red-400 font-semibold text-sm">Cerrar sesión</Text>
           </Pressable>
         </View>
       </View>
 
-      {/* Tabs */}
-      <View className="mx-5 flex-row mb-4 bg-brand-surface rounded-xl p-1 border border-brand-border">
-        {(["achievements", "leaderboard"] as ProfileTab[]).map((tab) => (
+      {/* Tab bar */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className="mx-5 mb-4"
+        contentContainerStyle={{ gap: 8 }}
+      >
+        {TABS.map((tab) => (
           <Pressable
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            className={`flex-1 py-2.5 rounded-lg items-center ${activeTab === tab ? "bg-brand-primary" : ""}`}
+            key={tab.key}
+            onPress={() => setActiveTab(tab.key)}
+            className={`px-4 py-2.5 rounded-xl border flex-row items-center gap-1.5 ${
+              activeTab === tab.key
+                ? "bg-brand-primary border-brand-primary"
+                : "bg-brand-surface border-brand-border"
+            }`}
           >
+            <Text style={{ fontSize: 14 }}>{tab.icon}</Text>
             <Text
-              className={`text-sm font-semibold ${activeTab === tab ? "text-white" : "text-brand-muted"}`}
+              className={`text-sm font-semibold ${
+                activeTab === tab.key ? "text-white" : "text-brand-muted"
+              }`}
             >
-              {tab === "achievements"
-                ? `🏅 ${t("profile.tabs.achievements")}`
-                : `🏆 ${t("profile.tabs.rankings")}`}
+              {tab.label}
             </Text>
           </Pressable>
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 
+  // ── Achievements tab ───────────────────────────────────────────────────
   if (activeTab === "achievements") {
     return (
       <SafeAreaView className="flex-1 bg-brand-dark" edges={["top"]}>
         <FlatList<UserAchievement>
-          ListHeaderComponent={ListHeader}
+          ListHeaderComponent={Header}
           contentContainerStyle={{ paddingBottom: 32 }}
           data={achievements}
           keyExtractor={(item) => item.id}
@@ -210,8 +237,34 @@ export default function ProfileScreen() {
             </View>
           )}
           ListEmptyComponent={
-            <Text className="text-brand-muted text-center mt-6 px-5">
-              {t("profile.empty.achievements")}
+            <View className="items-center px-8 py-12">
+              <Text style={{ fontSize: 48 }}>🔒</Text>
+              <Text className="text-white font-bold text-lg mt-3 text-center">
+                Sin logros aún
+              </Text>
+              <Text className="text-brand-muted text-sm text-center mt-1">
+                Registra tu primer viaje para desbloquear logros.
+              </Text>
+            </View>
+          }
+        />
+      </SafeAreaView>
+    );
+  }
+
+  // ── Collections tab ────────────────────────────────────────────────────
+  if (activeTab === "collections") {
+    return (
+      <SafeAreaView className="flex-1 bg-brand-dark" edges={["top"]}>
+        <FlatList
+          ListHeaderComponent={Header}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+          data={collections}
+          keyExtractor={(item) => item.def.id}
+          renderItem={({ item }) => <CollectionCard collection={item} />}
+          ListEmptyComponent={
+            <Text className="text-brand-muted text-center mt-8">
+              No hay colecciones disponibles.
             </Text>
           }
         />
@@ -219,10 +272,26 @@ export default function ProfileScreen() {
     );
   }
 
+  // ── Stats tab ──────────────────────────────────────────────────────────
+  if (activeTab === "stats") {
+    return (
+      <SafeAreaView className="flex-1 bg-brand-dark" edges={["top"]}>
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 32 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {Header}
+          <TravelStats stats={stats} />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // ── Leaderboard tab ────────────────────────────────────────────────────
   return (
     <SafeAreaView className="flex-1 bg-brand-dark" edges={["top"]}>
       <FlatList<LeaderboardEntry>
-        ListHeaderComponent={ListHeader}
+        ListHeaderComponent={Header}
         contentContainerStyle={{ paddingBottom: 32 }}
         data={leaderboard}
         keyExtractor={(item) => item.rank_position.toString()}
@@ -238,7 +307,7 @@ export default function ProfileScreen() {
         )}
         ListEmptyComponent={
           <Text className="text-brand-muted text-center mt-6 px-5">
-            {t("profile.empty.leaderboard")}
+            El ranking está vacío.
           </Text>
         }
       />

@@ -26,4 +26,5 @@ export const CATEGORY_ICONS: Record<string, string> = {
   WONDER: "🏛️",
   HIDDEN_GEM: "💎",
   MAGIC_TOWN: "✨",
+  CONTINENT: "🗺️",
 };
